@@ -1,5 +1,5 @@
 import re
-from utils import NLP, ENTITIES
+from utils import NLP, ENTITIES, NEWLINE_CHAR
 
 
 LABEL2ID = {"O": 0}
@@ -176,11 +176,13 @@ def prepare_ingredients_for_prediction(ingredients):
             ingredients = ingredients
         else:
             raise ValueError(f"{type(ingredients[0])} is not supported!")
-
+        
     elif isinstance(ingredients, str):
         ingredients = [tokenize_ingredients(ingredients)]
 
     else:
         raise ValueError(f"{type(ingredients)} is not supported!")
-
+    
+    ingredients = [[NEWLINE_CHAR if token == "\n" else token for token in ingreds]
+            for ingreds in ingredients]
     return ingredients
