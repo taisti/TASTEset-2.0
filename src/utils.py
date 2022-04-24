@@ -18,7 +18,7 @@ def prepare_data(taste_set, entities_format="spans"):
     will be of the following format: [[B-FOOD, I-FOOD, O, ...], [B-UNIT, ...]].
     If equal to span, entities will be of the following format:
     [[(0, 6, FOOD), (10, 15, PROCESS), ...], [(0, 2, UNIT), ...]]
-    :return: list of recipes and corresponding list of entities
+    :return: list of recipes ingredients and corresponding list of entities
     """
 
     assert entities_format in ["bio", "spans"],\
@@ -30,7 +30,7 @@ def prepare_data(taste_set, entities_format="spans"):
     else:
         raise ValueError('Incorret TASTEset format!')
 
-    all_recipes = df["ingredients"].to_list()
+    all_ingredients = df["ingredients"].to_list()
     all_entities = []
 
     for idx in df.index:
@@ -42,12 +42,13 @@ def prepare_data(taste_set, entities_format="spans"):
                              entity_dict["type"]))
 
         if entities_format == "bio":
-            tokenized_recipe, entities = span_to_bio(all_recipes[idx], entities)
-            all_recipes[idx] = tokenized_recipe
+            tokenized_ingredients, entities = span_to_bio(all_ingredients[idx],
+                                                          entities)
+            all_ingredients[idx] = tokenized_ingredients
 
         all_entities.append(entities)
 
-    return all_recipes, all_entities
+    return all_ingredients, all_entities
 
 
 def bio_to_biluo(bio_entities):
@@ -79,19 +80,19 @@ def bio_to_biluo(bio_entities):
     return biluo_entities
 
 
-def biluo_to_span(recipe, biluo_entities):
+def biluo_to_span(ingredients, biluo_entities):
     """
     :param biluo_entities: list of BILUO entities, eg. ["O", "B-FOOD", "L-FOOD",
     "U-PROCESS"]
     :return: list of span entities, eg. [(span_start, span_end, "FOOD"),
     (span_start, span_end, "PROCESS")]
     """
-    doc = NLP(recipe)
+    doc = NLP(ingredients)
     spans = biluo_tags_to_offsets(doc, biluo_entities)
     return spans
 
 
-def bio_to_span(recipe, bio_entities):
+def bio_to_span(ingredients, bio_entities):
     """
     :param bio_entities: list of BIO entities, eg. ["O", "B-FOOD", "I-FOOD",
     "B-PROCESS"]
@@ -99,21 +100,21 @@ def bio_to_span(recipe, bio_entities):
     (span_start, span_end, "PROCESS")]
     """
     biluo_entities = bio_to_biluo(bio_entities)
-    spans = biluo_to_span(recipe, biluo_entities)
+    spans = biluo_to_span(ingredients, biluo_entities)
     return spans
 
 
-def span_to_biluo(recipe, span_entities):
+def span_to_biluo(ingredients, span_entities):
     """
     :param span_entities: list of span entities, eg. [(span_start, span_end,
     "FOOD"), (span_start, span_end, "PROCESS")]
     :return: list of BILUO entities, eg. ["O", "B-FOOD", "L-FOOD",
-    "U-PROCESS"] along with tokenized recipe
+    "U-PROCESS"] along with tokenized recipe ingredients
     """
-    doc = NLP(recipe.replace("\n", " "))
-    tokenized_recipe = [token.text for token in doc]
+    doc = NLP(ingredients)
+    tokenized_ingredients = [token.text for token in doc]
     spans = offsets_to_biluo_tags(doc, span_entities)
-    return tokenized_recipe, spans
+    return tokenized_ingredients, spans
 
 
 def biluo_to_bio(biluo_entities):
@@ -127,15 +128,16 @@ def biluo_to_bio(biluo_entities):
     return bio_entities
 
 
-def span_to_bio(recipe, span_entities):
+def span_to_bio(ingredients, span_entities):
     """
     :param span_entities: list of span entities, eg. [(span_start, span_end,
     "FOOD"), (span_start, span_end, "PROCESS")]
     :return: list of BIO entities, eg. ["O", "B-FOOD", "I-FOOD", "B-PROCESS"]
     """
-    tokenized_recipe, biluo_entities = span_to_biluo(recipe, span_entities)
+    tokenized_ingredients, biluo_entities = span_to_biluo(ingredients,
+                                                          span_entities)
     bio_entities = biluo_to_bio(biluo_entities)
-    return tokenized_recipe, bio_entities
+    return tokenized_ingredients, bio_entities
 
 
 def spans_to_prodigy_spans(list_of_spans):
