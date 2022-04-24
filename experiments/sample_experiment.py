@@ -6,16 +6,17 @@ NUM_OF_FOLDS = 5
 
 
 def main():
-    recipes, entities = prepare_data("../data/TASTEset.csv")
-    bio_recipes, bio_entities = prepare_data("../data/TASTEset.csv", "bio")
+    ingredients, entities = prepare_data("../data/TASTEset.csv")
+    bio_ingredients, bio_entities = prepare_data("../data/TASTEset.csv", "bio")
 
     kf = KFold(n_splits=NUM_OF_FOLDS, shuffle=True, random_state=SEED)
 
-    kf.get_n_splits(recipes)
+    kf.get_n_splits(ingredients)
 
     for fold_id, (train_index, test_index) in enumerate(kf.split(entities)):
-        tr_recipes, vl_recipes = [recipes[idx] for idx in train_index],\
-                                 [recipes[idx] for idx in test_index]
+        tr_ingredients, vl_ingredients = \
+            [ingredients[idx] for idx in train_index],\
+            [ingredients[idx] for idx in test_index]
         tr_entities, vl_entities = [entities[idx] for idx in train_index],\
                                    [entities[idx] for idx in test_index]
 
