@@ -8,7 +8,7 @@ from nervaluate import Evaluator
 
 NLP = spacy.load('en_core_web_sm')
 ENTITIES = ["FOOD", "QUANTITY", "UNIT", "PROCESS", "PHYSICAL_QUALITY", "COLOR",
-            "TASTE", "PURPOSE", "PART"]
+            "TASTE", "PURPOSE", "PART", "TRADE_NAME", "EXAMPLE", "DIET"]
 NEWLINE_CHAR = "."
 
 
