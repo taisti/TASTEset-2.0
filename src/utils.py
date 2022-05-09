@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 import os
 import json
@@ -8,17 +9,18 @@ from nervaluate import Evaluator
 
 NLP = spacy.load('en_core_web_sm')
 ENTITIES = ["FOOD", "QUANTITY", "UNIT", "PROCESS", "PHYSICAL_QUALITY", "COLOR",
-            "TASTE", "PURPOSE", "PART"]
+            "TASTE", "PURPOSE", "PART", "TRADE_NAME", "DIET", "EXAMPLE"]
 NEWLINE_CHAR = "."
 
 
-def prepare_data(taste_set, entities_format="spans"):
+def prepare_data(taste_set, entities_format="spans", discontinuous=False):
     """
     :param tasteset: TASTEset as pd.DataFrame or a path to the TASTEset
     :param entities_format: the format of entities. If equal to 'bio', entities
     will be of the following format: [[B-FOOD, I-FOOD, O, ...], [B-UNIT, ...]].
     If equal to span, entities will be of the following format:
     [[(0, 6, FOOD), (10, 15, PROCESS), ...], [(0, 2, UNIT), ...]]
+    :param discontinuous: if True, then include discontinuous entites
     :return: list of recipes ingredients and corresponding list of entities
     """
 
@@ -34,13 +36,29 @@ def prepare_data(taste_set, entities_format="spans"):
     all_ingredients = df["ingredients"].to_list()
     all_entities = []
 
+    if discontinuous:
+        raise NotImplementedError("The model does not handle discontinuity!")
+
     for idx in df.index:
         ingredients_entities = json.loads(df.at[idx, "ingredients_entities"])
         entities = []
 
         for entity_dict in ingredients_entities:
-            entities.append((entity_dict["start"], entity_dict["end"],
-                             entity_dict["type"]))
+            # pick only specified entities
+            if entity_dict["type"] not in ENTITIES:
+                continue
+            spans = entity_dict["span"]
+            spans = re.findall("(\d+, \d+)", spans)
+            spans = [[int(char_id) for char_id in span.split(",")] for span
+                     in spans]
+            for start, end in spans:
+                add = True
+                # avoid overlapping entities
+                for present_start, present_end, _ in entities:
+                    if start >= present_start and end <= present_end:
+                        add = False
+                if add:
+                    entities.append((start, end, entity_dict["type"]))
 
         if entities_format == "bio":
             tokenized_ingredients, entities = span_to_bio(all_ingredients[idx],
