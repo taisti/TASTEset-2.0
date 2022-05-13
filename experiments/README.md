@@ -16,6 +16,6 @@ All tested BERT versions include:
 
 Simply run:
 ```commandline
-accelerate launch luke_5fold.py --model_name_or_path studio-ousia/luke-large --task_name ner --max_length 128 --per_device_train_batch_size 16 --learning_rate 2e-5 --num_train_epochs 30 --output_dir /tmp/ner/
+accelerate launch luke_5fold.py --model_name_or_path studio-ousia/luke-base --task_name ner --max_length 128 --per_device_train_batch_size 16 --learning_rate 2e-5 --num_train_epochs 30 --output_dir /tmp/ner/
 ```
 Make sure the paths to luke_utils and src.luke are correct 
