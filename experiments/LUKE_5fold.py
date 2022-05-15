@@ -47,7 +47,7 @@ from transformers import (
 from transformers.file_utils import get_full_repo_name
 from transformers.utils.versions import require_version
 import numpy as np
-from src.utils import prepare_data, evaluate_predictions
+from utils import prepare_data, evaluate_predictions, ENTITIES
 from sklearn.model_selection import KFold
 import os
 os.environ["NCCL_DEBUG"] = "INFO"
@@ -145,23 +145,23 @@ def parse_args():
     parser.add_argument(
         "--per_device_train_batch_size",
         type=int,
-        default=8,
+        default=16,
         help="Batch size (per device) for the training dataloader.",
     )
     parser.add_argument(
         "--per_device_eval_batch_size",
         type=int,
-        default=8,
+        default=16,
         help="Batch size (per device) for the evaluation dataloader.",
     )
     parser.add_argument(
         "--learning_rate",
         type=float,
-        default=5e-5,
+        default=2e-5,
         help="Initial learning rate (after the potential warmup period) to use.",
     )
     parser.add_argument("--weight_decay", type=float, default=0.0, help="Weight decay to use.")
-    parser.add_argument("--num_train_epochs", type=int, default=3, help="Total number of training epochs to perform.")
+    parser.add_argument("--num_train_epochs", type=int, default=30, help="Total number of training epochs to perform.")
     parser.add_argument(
         "--max_train_steps",
         type=int,
@@ -185,7 +185,7 @@ def parse_args():
         "--num_warmup_steps", type=int, default=100, help="Number of steps for the warmup in the lr scheduler."
     )
     parser.add_argument("--output_dir", type=str, default=None, help="Where to store the final model.")
-    parser.add_argument("--seed", type=int, default=None, help="A seed for reproducible training.")
+    parser.add_argument("--seed", type=int, default=SEED, help="A seed for reproducible training.")
     parser.add_argument(
         "--label_all_tokens",
         action="store_true",
@@ -241,7 +241,7 @@ class LukeDataset():
         self.tokenizer = None
         self.tokens = tokens
         self.entities = [[el.replace("B-", "").replace("I-", "") for el in elem] for elem in entities]
-        self.unique_tag_names = []
+        self.unique_tag_names = ["O"] + ENTITIES
         self.sentence_boundaries = []
         self.tokenized_input = []
         self.entity_spans = []
@@ -254,12 +254,8 @@ class LukeDataset():
 
 
     def generate_ner_tags(self):
-        from collections import Counter
-        counted = Counter([e for ent in self.entities for e in ent])
-        ordered = [value for value, count in counted.most_common()]
-        self.unique_tag_names = ordered
         d = {}
-        for idx, ent in enumerate(ordered):
+        for idx, ent in enumerate(self.unique_tag_names):
             d[ent] = idx
         ner_tags = [[d[e] for e in ent]for ent in self.entities]
 
@@ -397,7 +393,7 @@ class LukeDataset():
 
 
 
-recipes, entities = prepare_data("data/TASTEset.csv", "bio")
+recipes, entities = prepare_data("../data/TASTEset.csv", "bio")
 
 kf = KFold(n_splits=NUM_OF_FOLDS, shuffle=True, random_state=SEED)
 
@@ -468,6 +464,7 @@ def main():
         #percentile of not annotated data:
         # [el for elem in all_entities for el in elem].count("O") / len(
         #     [el for elem in all_entities for el in elem]) * 100
+
         raw_datasets = datasets.DatasetDict({"train": LukeDataset(train_recipes, train_entities, padding),
                                              "test": LukeDataset(test_recipes, test_entities, padding)})
         # if args.dataset_name is not None:
@@ -682,7 +679,10 @@ def main():
                     'f1-color': results["OLOR"]["f1"],
                     'f1-taste': results["ASTE"]["f1"],
                     'f1-purpose': results["URPOSE"]["f1"],
-                    'f1-part': results["ART"]["f1"]
+                    'f1-part': results["ART"]["f1"],
+                    'f1-trade-name': results["RADE_NAME"]["f1"],
+                    'f1-diet': results["IET"]["f1"],
+                    'f1-example': results["XAMPLE"]["f1"]
                 }
 
         # Train!
