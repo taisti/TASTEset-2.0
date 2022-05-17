@@ -9,7 +9,7 @@ following websites:
 * https://tasty.co
 * www.yummly.com
 
-using this [tool](https://github.com/hhursev/186recipe-scrapers). 
+using this [tool](https://github.com/hhursev/recipe-scrapers). 
 
 The dataset encapsulates 15 entities:
 
