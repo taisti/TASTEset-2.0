@@ -5,7 +5,7 @@ from transformers import (BertForTokenClassification, AutoTokenizer, Trainer,
                           set_seed)
 from datasets import Dataset
 from BERT_with_CRF import BERTCRF
-from utils import evaluate_predictions, prepare_data
+from utils import evaluate_predictions, prepare_data, NEWLINE_CHAR
 from BERT_utils import token_to_entity_predictions, tokenize_and_align_labels,\
     prepare_ingredients_for_prediction, CONFIG
 
@@ -16,9 +16,11 @@ class TastyModel:
         self.config = config
         bert_type = self.config['bert_type']
         model_name_or_path = self.config["model_name_or_path"] if \
-            self.config["model_name_or_path"] is not None else bert_type
+            self.config["model_name_or_path"] else bert_type
 
-        self.tokenizer = AutoTokenizer.from_pretrained(bert_type)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        if self.config["model_name_or_path"]:
+            self.tokenizer.add_tokens(NEWLINE_CHAR, special_tokens=True)
 
         label2id = {k: int(v) for k, v in self.config["label2id"].items()}
         id2label = {v: k for k, v in label2id.items()}
@@ -41,6 +43,9 @@ class TastyModel:
             id2label=id2label,
             classifier_dropout=0.2
         )
+        
+        if self.config["model_name_or_path"]:
+            model.resize_token_embeddings(len(self.tokenizer))
 
         training_args = TrainingArguments(
             **self.config["training_args"]

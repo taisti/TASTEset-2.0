@@ -58,12 +58,13 @@ def token_to_entity_predictions(text_split_words, text_split_tokens,
     :return: a list of entities associated with each word from text_split_words,
     ie. entities extracted from recipe ingredients
     """
-
+    
     word_idx = 0
     word_entities = []
     word_from_tokens = ""
     word_entity = ""
     prev_word_entity = ""
+    prev_modified = False
 
     for token_label, token in zip(token_labels, text_split_tokens):
         if token in ["[SEP]", "[CLS]"]:
@@ -72,6 +73,15 @@ def token_to_entity_predictions(text_split_words, text_split_tokens,
         # take the entity associated with the first token (subword)
         word_entity = id2label[token_label] if word_entity == "" \
             else word_entity
+        
+        if prev_modified:
+            word_entity = word_entity.replace("I-", "B-")
+        
+        if word_from_tokens == NEWLINE_CHAR:
+            word_entity = "O"
+            prev_modified = True
+        else:
+            prev_modified = False
 
         if word_from_tokens == text_split_words[word_idx] or \
                 word_from_tokens == "[UNK]":
@@ -155,6 +165,7 @@ def tokenize_and_align_labels(ingredients, entities, tokenizer, max_length,
 def tokenize_ingredients(ingredients):
     doc = NLP(ingredients)
     tokenized_ingredients = [token.text for token in doc]
+
     return tokenized_ingredients
 
 
@@ -182,7 +193,7 @@ def prepare_ingredients_for_prediction(ingredients):
 
     else:
         raise ValueError(f"{type(ingredients)} is not supported!")
-    
+
     ingredients = [[NEWLINE_CHAR if token == "\n" else token for token in ingreds]
             for ingreds in ingredients]
     return ingredients
