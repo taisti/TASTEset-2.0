@@ -29,12 +29,20 @@
     "15": "B-PURPOSE",
     "16": "I-PURPOSE",
     "17": "B-PART",
-    "18": "I-PART"
+    "18": "I-PART",
+    "19": "B-TRADE_NAME",
+    "20": "I-TRADE_NAME",
+    "21": "B-DIET",
+    "22": "I-DIET",
+    "23": "B-EXAMPLE",
+    "24": "I-EXAMPLE"
   },
   "initializer_range": 0.02,
   "intermediate_size": 4096,
   "label2id": {
     "B-COLOR": 11,
+    "B-DIET": 21,
+    "B-EXAMPLE": 23,
     "B-FOOD": 1,
     "B-PART": 17,
     "B-PHYSICAL_QUALITY": 9,
@@ -42,8 +50,11 @@
     "B-PURPOSE": 15,
     "B-QUANTITY": 3,
     "B-TASTE": 13,
+    "B-TRADE_NAME": 19,
     "B-UNIT": 5,
     "I-COLOR": 12,
+    "I-DIET": 22,
+    "I-EXAMPLE": 24,
     "I-FOOD": 2,
     "I-PART": 18,
     "I-PHYSICAL_QUALITY": 10,
@@ -51,6 +62,7 @@
     "I-PURPOSE": 16,
     "I-QUANTITY": 4,
     "I-TASTE": 14,
+    "I-TRADE_NAME": 20,
     "I-UNIT": 6,
     "O": 0
   },
@@ -83,5 +95,5 @@
   "type_vocab_size": 2,
   "use_cache": true,
   "use_crf": false,
-  "vocab_size": 28996
+  "vocab_size": 28997
 }
