@@ -11,7 +11,7 @@ def main(args):
     with open(args.model_config_path, "r") as config_file:
         config = json.load(config_file)
 
-    config["model_name_or_path"] = "../res/"
+    config["model_name_or_path"] = os.path.dirname(args.model_config_path)
     config["bert_type"] = "bert-large-cased"
     model = TastyModel(config=config)
 
