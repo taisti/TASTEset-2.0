@@ -5,12 +5,15 @@ from BERT_utils import prepare_ingredients_for_prediction
 
 
 MODEL_PATH = "../res"
-RECIPE = "2 eggs\n1 tablespoon milk\n1 teaspoon butter\n1/2 avocado (diced)\n1 teaspoon chives (chopped)"
+RECIPE = "2 eggs\n1 tablespoon milk\n1 teaspoon butter\n1/2 avocado (diced)" \
+         "\n1 teaspoon chives (chopped)"
 RECIPE_WITH_SUBSTITUTE = RECIPE.replace("butter", "margarine")
 QUERY_WORD = "butter"
 POTENTIAL_SUBSTITUTE = "margarine" 
 WRONG_SUBSTITUTE = "sour cream"
 WRONG_SUBSTITUTE2 = "peanut butter"
+VERY_WRONG_SUBSTITUTE = "chicken"
+VERY_WRONG_SUBSTITUTE2 = "potato"
 
 
 def locate_word(tokenized_word, tokenized_recipe):
@@ -42,19 +45,32 @@ def main():
     tokenizer = BertTokenizer.from_pretrained(MODEL_PATH)
     model = BertModel.from_pretrained(MODEL_PATH)
     
-    tokenized_recipe = tokenizer(RECIPE, return_tensors="pt") 
     embeddings = {}
 
-    for word in [QUERY_WORD, POTENTIAL_SUBSTITUTE, WRONG_SUBSTITUTE, WRONG_SUBSTITUTE2]:
-        recipe_prepared = prepare_ingredients_for_prediction(RECIPE.replace(QUERY_WORD, word))
-        tokenized_input = tokenizer(recipe_prepared, return_tensors="pt", is_split_into_words=True)
-        tokenized_word = tokenizer(word, add_special_tokens = False, return_tensors="pt")
+    for word in [QUERY_WORD, POTENTIAL_SUBSTITUTE, WRONG_SUBSTITUTE,
+                 WRONG_SUBSTITUTE2, VERY_WRONG_SUBSTITUTE,
+                 VERY_WRONG_SUBSTITUTE2]:
+        recipe_prepared = prepare_ingredients_for_prediction(
+            RECIPE.replace(QUERY_WORD, word))
+        tokenized_input = tokenizer(
+            recipe_prepared,
+            return_tensors="pt",
+            is_split_into_words=True
+        )
+
+        tokenized_word = tokenizer(
+            word,
+            add_special_tokens=False,
+            return_tensors="pt"
+        )
         
         output = model(**tokenized_input)[0]
-        start_idx, end_idx = locate_word(tokenized_word.input_ids.flatten(), tokenized_input.input_ids.flatten())
+        start_idx, end_idx = locate_word(
+            tokenized_word.input_ids.flatten(),
+            tokenized_input.input_ids.flatten()
+        )
         
         embeddings[word] = get_word_embedding(output, start_idx, end_idx)
-    
 
     cosines = {}
     for key in embeddings.keys():
@@ -65,4 +81,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
