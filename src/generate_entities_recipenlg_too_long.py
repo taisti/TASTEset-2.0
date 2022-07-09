@@ -9,7 +9,7 @@ from BERT_model import TastyModel
 from utils import bio_to_span, NEWLINE_CHAR
 
 
-def evaluate_num_of_tokens(some_str):
+def evaluate_num_of_tokens(tokenizer, some_str):
     input_ids = tokenizer(some_str)["input_ids"]
     return len(input_ids)
 
@@ -43,7 +43,7 @@ def main(args, tokenizer):
         new_list = []
         el = ""
         for j in range(len(some_list)):
-           length = evaluate_num_of_tokens(el + " " + some_list[j])
+           length = evaluate_num_of_tokens(tokenizer, el + " " + some_list[j])
            if length >= 126:
                new_list.append(
                    el.strip().replace(f" {NEWLINE_CHAR} ", "\n")
