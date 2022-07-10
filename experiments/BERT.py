@@ -12,10 +12,10 @@ def cross_validate(args):
 
     bio_ingredients, bio_entities = prepare_data(args.tasteset_path, "bio")
 
-    CONFIG["bert_type"] = args.bert_type
-    CONFIG["model_name_or_path"] = args.model_name_or_path
+    model_name_or_path = args.model_name_or_path
     CONFIG["use_crf"] = args.use_crf
     CONFIG["training_args"]["seed"] = args.seed
+    CONFIG["newline_char"] = args.newline_char
 
     kf = KFold(n_splits=args.num_of_folds, shuffle=True, random_state=args.seed)
     cross_val_results = {}
@@ -27,10 +27,9 @@ def cross_validate(args):
         tr_entities, vl_entities = [bio_entities[idx] for idx in train_index], \
                                    [bio_entities[idx] for idx in test_index]
 
-        model = TastyModel(config=CONFIG)
+        model = TastyModel(model_name_or_path, config=CONFIG)
         model.train(tr_ingredients, tr_entities)
         results = model.evaluate(vl_ingredients, vl_entities)
-        print(results)
         cross_val_results[fold_id] = results
 
     with open("bert_cross_val_results.json", "w") as json_file:
@@ -62,8 +61,6 @@ def cross_validate(args):
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('--bert-type', type=str, required=True,
-                        help='BERT type')
     parser.add_argument('--model-name-or-path', type=str,
                         help='path to model checkpoint')
     parser.add_argument('--tasteset-path', type=str,
@@ -74,6 +71,9 @@ if __name__ == "__main__":
                         help="seed for reproducibility")
     parser.add_argument("--use-crf", action='store_true',
                         help="Use CRF layer on top of BERT + linear layer")
+    parser.add_argument('--newline-char', type=str, default=".",
+                        help="Token representing new line (instead of \\n)")
+
     args = parser.parse_args()
 
     cross_validate(args)

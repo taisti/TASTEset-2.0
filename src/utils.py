@@ -10,7 +10,6 @@ from nervaluate import Evaluator
 NLP = spacy.load('en_core_web_sm')
 ENTITIES = ["FOOD", "QUANTITY", "UNIT", "PROCESS", "PHYSICAL_QUALITY", "COLOR",
             "TASTE", "PURPOSE", "PART", "TRADE_NAME", "DIET", "EXAMPLE"]
-NEWLINE_CHAR = "[NL]"
 
 
 def prepare_data(taste_set, entities_format="spans", discontinuous=False):
@@ -63,8 +62,6 @@ def prepare_data(taste_set, entities_format="spans", discontinuous=False):
         if entities_format == "bio":
             tokenized_ingredients, entities = span_to_bio(all_ingredients[idx],
                                                           entities)
-            tokenized_ingredients = [NEWLINE_CHAR if token == "\n" else token
-                    for token in tokenized_ingredients]
             all_ingredients[idx] = tokenized_ingredients
 
         all_entities.append(entities)

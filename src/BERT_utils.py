@@ -1,5 +1,5 @@
 import re
-from utils import NLP, ENTITIES, NEWLINE_CHAR
+from utils import NLP, ENTITIES
 
 
 LABEL2ID = {"O": 0}
@@ -15,7 +15,7 @@ CONFIG = {
     "model_name_or_path": None,
     "num_of_tokens": 128,
     "only_first_token": True,
-
+    "classifier_dropout": 0.2,
     "training_args": {
         "output_dir": './bert-checkpoints',
         "learning_rate": 2e-5,
@@ -24,7 +24,6 @@ CONFIG = {
         "num_train_epochs": 30,
         "weight_decay": 0.01,
     },
-
     "label2id": LABEL2ID
 }
 
@@ -44,7 +43,7 @@ def check_if_entity_correctly_began(entity, prev_entity):
 
 
 def token_to_entity_predictions(text_split_words, text_split_tokens,
-                                token_labels, id2label):
+                                token_labels, id2label, newline_char):
     """
     Transform token (subword) predictions into word predictions.
     :param text_split_words: list of words from one recipe ingredients,
@@ -77,7 +76,7 @@ def token_to_entity_predictions(text_split_words, text_split_tokens,
         if prev_modified:
             word_entity = word_entity.replace("I-", "B-")
         
-        if word_from_tokens == NEWLINE_CHAR:
+        if word_from_tokens == newline_char:
             word_entity = "O"
             prev_modified = True
         else:
@@ -169,7 +168,7 @@ def tokenize_ingredients(ingredients):
     return tokenized_ingredients
 
 
-def prepare_ingredients_for_prediction(ingredients):
+def prepare_ingredients(ingredients, newline_char):
     """
     Prepares ingredients for entities extraction.
     :param ingredients: this argument should be one of the following:
@@ -194,6 +193,6 @@ def prepare_ingredients_for_prediction(ingredients):
     else:
         raise ValueError(f"{type(ingredients)} is not supported!")
 
-    ingredients = [[NEWLINE_CHAR if token == "\n" else token for token in ingreds]
+    ingredients = [[newline_char if token == "\n" else token for token in ingreds]
             for ingreds in ingredients]
     return ingredients

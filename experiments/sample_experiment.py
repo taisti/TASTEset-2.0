@@ -1,4 +1,4 @@
-from src.utils import prepare_data, evaluate_predictions
+from utils import prepare_data, evaluate_predictions
 from sklearn.model_selection import KFold
 
 SEED = 42
