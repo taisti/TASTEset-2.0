@@ -5,7 +5,7 @@ from transformers import (BertForTokenClassification, AutoTokenizer, Trainer,
                           set_seed)
 from datasets import Dataset
 from BERT_with_CRF import BERTCRF
-from utils import evaluate_predictions, prepare_data
+from utils import evaluate_predictions, prepare_data, bio_to_span
 from BERT_utils import token_to_entity_predictions, tokenize_and_align_labels,\
     prepare_ingredients, CONFIG
 
@@ -85,7 +85,7 @@ class TastyModel:
 
         return results
 
-    def predict(self, ingredients):
+    def predict(self, ingredients, return_as_spans=False):
 
         data, dataset = self.prepare_data(ingredients, [])
         ingredients = data['ingredients']
@@ -122,7 +122,9 @@ class TastyModel:
                     self.newline_char
                 )
             pred_entities.append(word_entities)
-
+        
+        if return_as_spans:
+            pred_entities = [bio_to_span(ingredients[idx], pred_entities[idx]) for idx in range(len(pred_entities))]
         return pred_entities
 
     def prepare_data(self, ingredients, entities):
